@@ -1,12 +1,14 @@
 ---
-title: Would you like to build an app?
+title: Building a ZIO App
 author: Mark Rudolph
 author_url: https://github.com/alterationx10
 author_image_url: https://avatars1.githubusercontent.com/u/149476?s=460&v=4
 tags: [Scala, ZIO, scala-cli]
 ---
 
-# Building a ZIO App
+![Bender do it myself meme](/img/build_an_app.jpg)
+
+We're going to build a ZIO App, with our own dependencies.
 
 ## Service Module Pattern 2
 
@@ -92,7 +94,7 @@ case class HasherLive(mac: Mac) extends Hasher {
 }
 ```
 
-#### Not everything has to be a Service Module
+### Not everything has to be a Service Module
 
 ```scala
 // Not everything needs to be/fit a Service Module pattern
@@ -149,6 +151,9 @@ object HashApp extends ZIOAppDefault {
 
 }
 ```
+
+### scala-cli
+
 
 # The Code
 
