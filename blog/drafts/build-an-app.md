@@ -8,7 +8,7 @@ tags: [Scala, ZIO, scala-cli]
 
 ![Bender do it myself meme](/img/build_an_app.jpg)
 
-We're going to build a ZIO App, with our own dependencies. 
+We're going to build a ZIO App, with our *own* dependencies. 
 
 In my [previous](/2022-02-01/zero-to-zio) post, I covered some highlights about working with ZIO, so this time I thought
 I would go through actually writing some code to illustrate some patterns of what you would actually do when developing
@@ -167,10 +167,10 @@ Very astute of you, and that leads me to my next point:
 ### Not everything has to be a Service Module
 
 Everything looks like a nail to a hammer. If you are new to ZIO, and have learned that the service module pattern is
-"the way" to inject implementations into your applications, you will sooner or later build some awkward code trying to force
-a pattern you don't need. I usually find it's when working with Java and non-ZIO Scala libraries. For example, I need a
-`Mac` for my `Hasher`, but to build a `Mac` I need a `SecretKeySpec`. But, I don't want to _implement_ a SecretKeySpec,
-I just want _a_ SecretKeySpec. Enter my `HashHelper` object below...
+"the way" to inject implementations into your applications, you will sooner or later build some awkward code trying to
+force a pattern you don't need. I usually find it's when working with Java and non-ZIO Scala libraries. For example, I
+need a `Mac` for my `Hasher`, but to build a `Mac` I need a `SecretKeySpec`. But, I don't want to _implement_ a
+SecretKeySpec, I just want _a_ SecretKeySpec. Enter my `HashHelper` object below...
 
 ```scala
 object HashHelper {
@@ -231,10 +231,12 @@ resulting combined layer is just a `ZIO[Any, Throwable, Hasher]`.
 
 ### Some things in life *are* free
 
-Our program is a `ZIO[ZIOAppArgs & (Hasher & Console), Throwable, ExitCode] `, but we only build a `ZLayer[Any, Nothing, Hasher]`.
-Luckily, the ZIO Environment(`ZEnv`) comes with some things already built in. Those things are `Clock`, `Console`, `System`,
-and `Random`.
+Our program is a `ZIO[ZIOAppArgs & (Hasher & Console), Throwable, ExitCode] `, but we only build
+a `ZLayer[Any, Nothing, Hasher]`. Luckily, the ZIO Environment(`ZEnv`) comes with some things already built in. Those
+things are `Clock`, `Console`, `System`, and `Random`. We're going to extend `ZIOAppDefault`, so we'll get that
+and `ZIOAppArgs` for free.
 
+Since the other parts are provided, we will only need to use `provideSome` to inject in the remaining dependencies.
 
 ### Running our program
 
@@ -250,11 +252,18 @@ object HashApp extends ZIOAppDefault {
 }
 ```
 
-### scala-cli
-
+With our use of `catchAll` here, we will catch any `Throwable`, and recover by printing it to the console.
 
 # The Code
 
+The complete Scala code can be found on GitHub at 
+[https://github.com/alterationx10/ax10](https://github.com/alterationx10/ax10). I've also pasted it below.
+
+### scala-cli
+
+To run it, and pass args, you need a `--`: `scala-cli run ax10.scala -- arg1 arg2`. To build an executable, just
+run `scala-cli package ax10.scala -f`, which should make an `ax10` you can run and start using. If you wanted to play
+with the code, you can easily use VSCode + Metals after running `scala-cli setup-ide .`.
 
 ## Full code, for posterity
 ```scala
@@ -365,7 +374,7 @@ object HashApp extends ZIOAppDefault {
             }
   } yield ExitCode.success
 
-  // We call .orDie here to give up, instead of having an error channel,
+  // We call .orDie here to give up, instead of having an something in the error channel,
   // because if we can't construct our dependencies, our app isn't going to
   // work anyway.
   val appLayer: ZLayer[Any, Nothing, Hasher] = {
