@@ -10,7 +10,7 @@ tags: [Scala, ZIO, scala-cli]
 
 We're going to build a ZIO App, with our *own* dependencies. 
 
-In my [previous](/2022-02-01/zero-to-zio) post, I covered some highlights about working with ZIO, so this time I thought
+In my [previous](/2022/02/01/zero-to-zio) post, I covered some highlights about working with ZIO, so this time I thought
 I would go through actually writing some code to illustrate some patterns of what you would actually do when developing
 in the framework, and then how to inject your resource into a program.
 
@@ -136,7 +136,7 @@ Ok, now for the fun part of writing our very own code. We will write a case clas
 dependencies via the constructor arguments. Hint: these arguments are going to be other dependencies your runtime needs
 via a ZLayer at some point!
 
-Out logic is pretty straight forward, and we just use a `Mac` to compute a hash, and Bas64 encode it.
+Out logic is pretty straight forward, and we just use a `Mac` to compute a hash, and Base64 encode it.
 
 ```scala
 // The live, default implementation of our Hasher Service.
