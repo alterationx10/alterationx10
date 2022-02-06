@@ -44,6 +44,7 @@ const config = {
         title: 'Alterationx10',
         items: [
           {to: '/', label: 'Blog', position: 'left'},
+          {to: '/about', label: 'About', position: 'left'},
           {
             href: 'https://github.com/alterationx10/alterationx10',
             label: 'GitHub',
@@ -65,6 +66,10 @@ const config = {
                 label: 'GitHub',
                 href: 'https://github.com/alterationx10',
               },
+              {
+                label: 'LinkedIn',
+                href: 'https://www.linkedin.com/in/alterationx10/'
+              }
             ],
           },
         ],

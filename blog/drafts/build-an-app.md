@@ -39,7 +39,7 @@ valid
 ./ax10 "Scala is the best" pd9t4XbrVM-9UtwzJ-O3i5AWxDw_XDKs1bfVstgD2oEdeheL9y82oEfRM9e_YVy1KA93tHjGmjl9l2elNedK1Q
 invalid
 ./ax10 a b c
-This app requires one argument to hash, and 2 to validate
+This app requires 1 argument to hash, and 2 to validate
 ```
 
 ## Service Module Pattern 2
