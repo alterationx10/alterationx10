@@ -6,11 +6,32 @@ author_image_url: https://avatars1.githubusercontent.com/u/149476?s=460&v=4
 tags: [Scala, ZIO, k8s]
 ---
 
+## Premise
+
+The example in this post is about using a kubernetes `CustomResourceDefinition` and `Operator` to simplify our lives as
+someone who made need to run a lot of infrastructure set up (dare I even say Dev/Ops).
+
+The example is complete/functioning, but isn't the most robust **solution** for what it does. It is meant to be
+_enough_ to work, and illustrate the concept - but not exactly a model code base :angel:
+
+## Hey, can you set me up a database?
+
+Perhaps you're the one with the password/access, or the only person nearby on the team that "knows SQL", but it's part
+of your daily life to set up databases for people. In between your coding work, you run _a lot_ of the following type of
+code:
+
 ```postgresql
 CREATE DATABASE stuff;
 CREATE USER stuff PASSWORD 'abc123';
 GRANT ALL ON DATABASE stuff TO stuff;
 ```
+
+But, wait a minute - you've just picked up a nifty framework called `ZIO`, and have decided to automate a bit of you
+daily todos.
+
+## Enter ZIO
+
+Let's create a `SQLService` that will set up a matching database and user:
 
 ```scala
 trait SQLService {
@@ -23,14 +44,16 @@ case class SQLServiceLive(cnsl: Console.Service) extends SQLService {
 }
 ```
 
+We aren't running this so often that we need a dedicated connection pool, so let's just
+grab a connection from the driver, and use this neat new ting we've learned about called `Zmanaged`.
 
 ```scala
 private val acquireConnection =
     ZIO.effect {
       val url = {
         sys.env.getOrElse(
-          "PG_CONN_URL",
-          "jdbc:postgresql://localhost:5432/?user=postgres&password=password"
+          "PG_CONN_URL", // If this environment variable isn't set...
+          "jdbc:postgresql://localhost:5432/?user=postgres&password=password" // ... use this default one.
         )
       }
       DriverManager.getConnection(url)
@@ -40,9 +63,36 @@ private val acquireConnection =
     ZManaged.fromAutoCloseable(acquireConnection)
 ```
 
+So what's a ZManaged?
+
+> ZManaged is a data structure that encapsulates the acquisition and the release of a resource, 
+> which may be used by invoking the use method of the resource. The resource will be automatically 
+> acquired before the resource is used and automatically released after the resource is used.
+- [The Docs](https://zio.dev/next/datatypes/resource/zmanaged/)
+
+So a ZManged is like a `try/catch/finally` - but you don't have to set up a lot of boilerplate. Perhaps you have also
+used a `thunk` to do something similar. The (very unsafely, with no error handling) example below handles the
+acquisition and release of the connection + statement, and you just need to pass in a function that takes a connection,
+and produces a result.
+
 ```scala
-// blurb about thunk
+def sqlAction[T](thunk: Statement => T): T = {
+  val url: String = "jdbc:postgresql://localhost:5432/?user=postgres&password=password"
+  val connection = DriverManager.getConnection(url)
+  val statement: Statement = connection.createStatement()
+  val result: T = thunk(statement)
+  statement.close()
+  connection.close()
+  result
+}
+
+def someSql = sqlAction { statement =>
+  // do something with statement
+  ???
+}
 ```
+
+We'll use a `ZManaged` for `Statement`s as well!
 
 ```scala
 private def acquireStatement(conn: Connection): Task[Statement] =
@@ -54,8 +104,10 @@ private def acquireStatement(conn: Connection): Task[Statement] =
     ZManaged.fromAutoCloseable(acquireStatement(conn))
 ```
 
+Now we'll write a function that takes a `Statement`, a `String` (some SQL), and will execute it:
+
 ```scala
-  def executeSql: Statement => String => ZIO[Any, Throwable, Unit] =
+  val executeSql: Statement => String => ZIO[Any, Throwable, Unit] =
     st =>
       sql =>
         ZIO
@@ -66,6 +118,9 @@ private def acquireStatement(conn: Connection): Task[Statement] =
             _ => cnsl.putStrLn(sql)
           )
 ```
+
+Now with all of our pieces in place, we can implement our `createDatabaseWithRole` that will _safely_ grab
+a `Connection` +`Statement`, and run our SQL:
 
 ```scala
 override def createDatabaseWithRole(db: String): Task[String] = {
@@ -82,12 +137,18 @@ override def createDatabaseWithRole(db: String): Task[String] = {
   }
 ```
 
+Now we can just make a simple ZIO program to call our new service, and call it a day!
+
 ```scala
 val simpleProgram: ZIO[Has[SQLService], Nothing, Unit] =
     SQLService(_.createDatabaseWithRole("altx11"))
       .unit
       .catchAll(_ => ZIO.unit)
 ```
+
+## Automate the Automation
+
+j/k you still have to stop what you're doing to run this for people.
 
 ```yaml
 apiVersion: alterationx10.com/v1
