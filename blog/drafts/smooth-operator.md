@@ -49,31 +49,40 @@ grab a connection from the driver, and use this neat new ting we've learned abou
 
 ```scala
 private val acquireConnection =
-    ZIO.effect {
-      val url = {
-        sys.env.getOrElse(
-          "PG_CONN_URL", // If this environment variable isn't set...
-          "jdbc:postgresql://localhost:5432/?user=postgres&password=password" // ... use this default one.
-        )
-      }
-      DriverManager.getConnection(url)
+  ZIO.effect {
+    val url = {
+      sys.env.getOrElse(
+        "PG_CONN_URL", // If this environment variable isn't set...
+        "jdbc:postgresql://localhost:5432/?user=postgres&password=password" // ... use this default one.
+      )
     }
+    DriverManager.getConnection(url)
+  }
 
-  private val managedConnection: ZManaged[Any, Throwable, Connection] =
-    ZManaged.fromAutoCloseable(acquireConnection)
+private val managedConnection: ZManaged[Any, Throwable, Connection] =
+  ZManaged.fromAutoCloseable(acquireConnection)
+
+// We'll use a ZManaged for Statements too!
+private def acquireStatement(conn: Connection): Task[Statement] =
+  Task.effect {
+    conn.createStatement
+  }
+
+def managedStatement(conn: Connection): ZManaged[Any, Throwable, Statement] =
+  ZManaged.fromAutoCloseable(acquireStatement(conn))
 ```
 
-So what's a ZManaged?
+What's a `ZManaged`?
 
 > ZManaged is a data structure that encapsulates the acquisition and the release of a resource, 
 > which may be used by invoking the use method of the resource. The resource will be automatically 
 > acquired before the resource is used and automatically released after the resource is used.
 - [The Docs](https://zio.dev/next/datatypes/resource/zmanaged/)
 
-So a ZManged is like a `try/catch/finally` - but you don't have to set up a lot of boilerplate. Perhaps you have also
-used a `thunk` to do something similar. The (very unsafely, with no error handling) example below handles the
-acquisition and release of the connection + statement, and you just need to pass in a function that takes a connection,
-and produces a result.
+So a `ZManged` is like a `try/catch/finally` - but you don't have to set up a lot of boilerplate. A common pattern I've
+used in the past would be to use a `thunk` to do something similar. The (very unsafely, with no error handling) example
+below handles the acquisition and release of the connection + statement, and you just need to pass in a function that
+takes a statement, and produces a result.
 
 ```scala
 def sqlAction[T](thunk: Statement => T): T = {
@@ -92,35 +101,24 @@ def someSql = sqlAction { statement =>
 }
 ```
 
-We'll use a `ZManaged` for `Statement`s as well!
+Now that we're all-in on FP, in the spirit of our thunk, we'll write a ZIO function that takes a `Statement`,
+a `String` (some SQL), and will execute it. We'll print the SQL we run, or log the error that falls out.
 
 ```scala
-private def acquireStatement(conn: Connection): Task[Statement] =
-    Task.effect {
-      conn.createStatement
-    }
-
-  def managedStatement(conn: Connection): ZManaged[Any, Throwable, Statement] =
-    ZManaged.fromAutoCloseable(acquireStatement(conn))
-```
-
-Now we'll write a function that takes a `Statement`, a `String` (some SQL), and will execute it:
-
-```scala
-  val executeSql: Statement => String => ZIO[Any, Throwable, Unit] =
-    st =>
-      sql =>
-        ZIO
-          .effect(st.execute(sql))
-          .unit
-          .tapBoth(
-            err => cnsl.putStrLnErr(err.getMessage),
-            _ => cnsl.putStrLn(sql)
-          )
+val executeSql: Statement => String => ZIO[Any, Throwable, Unit] =
+  st =>
+    sql =>
+      ZIO
+        .effect(st.execute(sql))
+        .unit
+        .tapBoth(
+          err => cnsl.putStrLnErr(err.getMessage),
+          _ => cnsl.putStrLn(sql)
+        )
 ```
 
 Now with all of our pieces in place, we can implement our `createDatabaseWithRole` that will _safely_ grab
-a `Connection` +`Statement`, and run our SQL:
+a `Connection` + `Statement`, and run our SQL:
 
 ```scala
 override def createDatabaseWithRole(db: String): Task[String] = {
@@ -141,14 +139,15 @@ Now we can just make a simple ZIO program to call our new service, and call it a
 
 ```scala
 val simpleProgram: ZIO[Has[SQLService], Nothing, Unit] =
-    SQLService(_.createDatabaseWithRole("altx11"))
+    SQLService(_.createDatabaseWithRole("someUser"))
       .unit
       .catchAll(_ => ZIO.unit)
 ```
 
 ## Automate the Automation
 
-j/k you still have to stop what you're doing to run this for people.
+j/k you still have to stop what you're doing to run this for people. Wouldn't it be neat if we could have some sort of
+Kubernetes resource that allowed _anyone_ to just update a straightforward file? What if we had something like:
 
 ```yaml
 apiVersion: alterationx10.com/v1
@@ -157,11 +156,15 @@ metadata:
   name: databases
 spec:
   databases:
-    - dev
-    - test
-    - marks
+    - mark
+    - joanie
+    - oliver
 
 ```
+
+Well, it turns out we _can_ have nice things! We can create a `CustomResourceDefinition` that will use the exact file as
+shown above! The following sets up our own `Kind` called `Database` that has a spec of databases, which is just an array
+of String
 
 ```yaml
 apiVersion: apiextensions.k8s.io/v1
@@ -205,6 +208,10 @@ spec:
 
 ```
 
+Since we don't want to run jobs manually, we can create an `Operator` that will watch for our `CustomResourceDefinition`
+, and take action automatically! With the [zio-k8s](https://github.com/coralogix/zio-k8s) library, these can be fairly
+straightforward to implement.
+
 ```scala
   val eventProcessor: EventProcessor[Clock, Throwable, Database] =
     (ctx, event) =>
@@ -219,6 +226,9 @@ spec:
           cnsl.putStrLn(s"Deleted - but not performing action").ignore
       }
 ```
+
+For our example program, we will always try and create the databases listed in the resources, and log/ignore the error
+if a database already exists.
 
 ```scala
 def processItem(item: Database): URIO[Clock, Unit] =
@@ -256,6 +266,9 @@ def processItem(item: Database): URIO[Clock, Unit] =
     } yield ()).ignore
 ```
 
+We will also take the auto-generated password, and create a secret for it as well! Now users can just mount a secret to
+their pods, and can connect directly to the database created for them. Soon we won't have to talk to any people at all!
+
 ```scala
 def upsertSecret(
       secret: Secret
@@ -271,6 +284,41 @@ def upsertSecret(
     } yield sec
   }
 ```
+
+## Deploying
+
+This example is targeted at deploying to the instance of Kubernetes provided by Docker, mainly so we can use our locally published 
+docker image.
+
+### Auto generation of our CRD client
+
+We will need the `zio-k8s-crd` SBT plugin to auto generate the client needed to work with our CRD. Once added, we can update
+our `build.sbt` file with the following, which points to the new CRD.
+
+```scala
+externalCustomResourceDefinitions := Seq(
+  file("crds/databases.yaml")
+)
+
+enablePlugins(K8sCustomResourceCodegenPlugin)
+```
+
+### Building a Docker image of our service
+
+We'll use the `sbt-native-packager` SBT plugin to build the docker image for us. We'll need a more recent version of
+Java than what is default, so well set `dockerBaseImage := "openjdk:17.0.2-slim-buster"` and set our project
+to `.enablePlugins(JavaServerAppPackaging)`. Now, when we run `sbt docker:publishLocal`, it will build and tag an image
+with the version specified in our `build.sbt` file that we can use in our kubernetes deployment yaml.
+
+```shell
+REPOSITORY      TAG            IMAGE ID       CREATED         SIZE
+smooth-operator 0.1.0-SNAPSHOT a4e2c2025cba   2 days ago      447MB
+```
+
+### Who doesn't love more YAML?
+
+We will create a standard `Deployment` of postgres, configured to have the super secure password of `password`. We will
+also create a `Service` to route traffic to it.
 
 ```yaml
 apiVersion: apps/v1
@@ -309,6 +357,21 @@ spec:
       protocol: TCP
 
 ```
+
+For deploying our `Operator`, we ultimately want to set up a `Deployment` for it, but we're going to need a few more
+bells and whistles first. Our app will need the right permissions to be able to watch our `CustomResourceDefinition`s,
+as well as creating secrets - these actions are done by the `ServiceAccount` our pod runs under. We will create
+a `ClusterRole` that has the required permissions, and use a `ClusterRoleBinding` to assign the `ClusterRole` to
+our `ServiceAccount`.
+
+A very useful `kubectl` command to check and make sure your permissions are correct is `kubectl auth can-i ...` command.
+
+```shell
+kubectl auth can-i create secrets --as=system:serviceaccount:default:db-operator-service-account -n default
+kubectl auth can-i watch databases --as=system:serviceaccount:default:db-operator-service-account -n default
+```
+
+With all that in mind, we can use the following yaml to get our app up and running.
 
 ```yaml
 apiVersion: v1
@@ -366,3 +429,28 @@ spec:
               value: "jdbc:postgresql://postgres:5432/?user=postgres&password=password"
 ---
 ```
+
+Note: When deploying an operator "for real", you want to take care that only one instance is running/working at a time.
+This is not covered here, but you should look
+into [Leader Election](https://coralogix.github.io/zio-k8s/docs/operator/operator_leaderelection)
+
+## The source
+
+You can view the source code on [GitHub](https://github.com/alterationx10/smooth-operator), tagged at ???
+
+Assuming you have Docker/Kubernetes et up, you should be able to run the following commands to get an example up and running:
+```shell
+# Build/publish our App to the local Docker repo
+sbt docker:publishLocal
+# Deploy our CustomResourceDefinition
+kubectl apply -f crds/databases.yaml
+# Deploy postgres
+kubectl apply -f yaml/postgres.yaml
+# Deploy our app
+kubectl apply -f yaml/db_operator.yaml
+# Create Database Resource
+kubectl apply -f yaml/databases.yaml
+```
+
+If you check the logs of the running pod, you should hopefully see the SQL successfully ran, and can also use `kubectl`
+to check for new `Secrets`!
