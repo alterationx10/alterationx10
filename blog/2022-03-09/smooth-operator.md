@@ -456,3 +456,7 @@ kubectl apply -f yaml/databases.yaml
 
 If you check the logs of the running pod, you should hopefully see the SQL successfully ran, and can also use `kubectl`
 to check for new `Secrets`!
+
+## Bonus Meme
+
+![Hard work pays off](/img/reading_time.png)
