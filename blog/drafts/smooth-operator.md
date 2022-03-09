@@ -17,17 +17,20 @@ The example is complete/functioning, but isn't the most robust **solution** for 
 _enough_ to work, and illustrate the concept with a solution to a made-up problem - but not exactly a model code base 
 :angel:
 
-## Hey, can you set me up a database?
+### Hey, can you set me up a database?
 
 Perhaps you're the one with the password/access, or the only person nearby on the team that "knows SQL", but it's part
 of your daily life to set up databases for people. In between your coding work, you run _a lot_ of the following type of
-code:
+code on your postgres database running in your kubernetes cluster:
 
 ```postgresql
 CREATE DATABASE stuff;
 CREATE USER stuff PASSWORD 'abc123';
 GRANT ALL ON DATABASE stuff TO stuff;
 ```
+
+Your hard work is then rewarded by remembering to set up a `Secret` for each database as well, so the user can easily
+mount it to their pods for access.
 
 But, wait a minute - you've just picked up a nifty framework called `ZIO`, and have decided to automate a bit of you
 daily todos.
@@ -48,7 +51,7 @@ case class SQLServiceLive(cnsl: Console.Service) extends SQLService {
 ```
 
 We aren't running this so often that we need a dedicated connection pool, so let's just
-grab a connection from the driver, and use this neat new ting we've learned about called `Zmanaged`.
+grab a connection from the driver, and use this neat new thing we've learned about called `Zmanaged`.
 
 ```scala
 private val acquireConnection =
@@ -82,10 +85,10 @@ What's a `ZManaged`?
 > acquired before the resource is used and automatically released after the resource is used.
 - [The Docs](https://zio.dev/next/datatypes/resource/zmanaged/)
 
-So a `ZManged` is like a `try/catch/finally` - but you don't have to set up a lot of boilerplate. A common pattern I've
-used in the past would be to use a `thunk` to do something similar. The (very unsafely, with no error handling) example
-below handles the acquisition and release of the connection + statement, and you just need to pass in a function that
-takes a statement, and produces a result.
+So a `ZManged` is like a `try/catch/finally` that handles your resources - but you don't have to set up a lot of
+boilerplate. A common pattern I've used in the past would be to use a `thunk` to do something similar. The (very
+unsafe, with no error handling) example below handles the acquisition and release of the connection + statement, and
+you just need to pass in a function that takes a statement, and produces a result.
 
 ```scala
 def sqlAction[T](thunk: Statement => T): T = {
@@ -104,7 +107,7 @@ def someSql = sqlAction { statement =>
 }
 ```
 
-Now that we're all-in on FP, in the spirit of our thunk, we'll write a ZIO function that takes a `Statement`,
+In the spirit of our thunk, we'll write a ZIO function that takes a `Statement`,
 a `String` (some SQL), and will execute it. We'll print the SQL we run, or log the error that falls out.
 
 ```scala
@@ -121,7 +124,7 @@ val executeSql: Statement => String => ZIO[Any, Throwable, Unit] =
 ```
 
 Now with all of our pieces in place, we can implement our `createDatabaseWithRole` that will _safely_ grab
-a `Connection` + `Statement`, and run our SQL:
+a `Connection` + `Statement`, run our SQL, and then automatically close those resources when done:
 
 ```scala
 override def createDatabaseWithRole(db: String): Task[String] = {
@@ -149,8 +152,9 @@ val simpleProgram: ZIO[Has[SQLService], Nothing, Unit] =
 
 ## Automate the Automation
 
-j/k you still have to stop what you're doing to run this for people. Wouldn't it be neat if we could have some sort of
-Kubernetes resource that allowed _anyone_ to just update a straightforward file? What if we had something like:
+j/k you still have to stop what you're doing to run this for people, and you _still_ need to make the `Secret`! Wouldn't
+it be neat if we could have some sort of Kubernetes resource that allowed _anyone_ to just update a straightforward
+file? What if we had something like:
 
 ```yaml
 apiVersion: alterationx10.com/v1
@@ -165,9 +169,9 @@ spec:
 
 ```
 
-Well, it turns out we _can_ have nice things! We can create a `CustomResourceDefinition` that will use the exact file as
-shown above! The following sets up our own `Kind` called `Database` that has a spec of databases, which is just an array
-of String
+Well, it turns out we _can_ have nice things! We can create a `CustomResourceDefinition` that will use that exact file
+as shown above! The following yaml sets up our own `Kind` called `Database` that has a spec of databases, which is just
+an array of String.
 
 ```yaml
 apiVersion: apiextensions.k8s.io/v1
@@ -231,7 +235,7 @@ straightforward to implement.
 ```
 
 For our example program, we will always try and create the databases listed in the resources, and log/ignore the error
-if a database already exists.
+if a database already exists. We will also take the auto-generated password, and create a secret for it as well!
 
 ```scala
 def processItem(item: Database): URIO[Clock, Unit] =
@@ -267,12 +271,7 @@ def processItem(item: Database): URIO[Clock, Unit] =
         } yield ()).ignore
       }
     } yield ()).ignore
-```
 
-We will also take the auto-generated password, and create a secret for it as well! Now users can just mount a secret to
-their pods, and can connect directly to the database created for them. Soon we won't have to talk to any people at all!
-
-```scala
 def upsertSecret(
       secret: Secret
   ): ZIO[Clock, K8sFailure, Secret] = {
@@ -290,13 +289,13 @@ def upsertSecret(
 
 ## Deploying
 
-This example is targeted at deploying to the instance of Kubernetes provided by Docker, mainly so we can use our locally published 
-docker image.
+This example is targeted at deploying to the instance of Kubernetes provided by Docker, mainly so we can use our locally
+published docker image.
 
 ### Auto generation of our CRD client
 
-We will need the `zio-k8s-crd` SBT plugin to auto generate the client needed to work with our CRD. Once added, we can update
-our `build.sbt` file with the following, which points to the new CRD.
+We will need the `zio-k8s-crd` SBT plugin to auto generate the client needed to work with our CRD. Once added, we can
+update our `build.sbt` file with the following, which points to the new CRD.
 
 ```scala
 externalCustomResourceDefinitions := Seq(
@@ -363,7 +362,7 @@ spec:
 
 For deploying our `Operator`, we ultimately want to set up a `Deployment` for it, but we're going to need a few more
 bells and whistles first. Our app will need the right permissions to be able to watch our `CustomResourceDefinition`s,
-as well as creating secrets - these actions are done by the `ServiceAccount` our pod runs under. We will create
+as well as accessing secrets - these actions are done by the `ServiceAccount` our pod runs under. We will create
 a `ClusterRole` that has the required permissions, and use a `ClusterRoleBinding` to assign the `ClusterRole` to
 our `ServiceAccount`.
 
