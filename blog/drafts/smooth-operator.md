@@ -6,7 +6,7 @@ author_image_url: https://avatars1.githubusercontent.com/u/149476?s=460&v=4
 tags: [Scala, ZIO, k8s]
 ---
 
-![How to deploy Kubernetes meme](/img/memernetes.jpg)
+![How to deploy Kubernetes meme](/img/memernetes.png)
 
 ## Premise
 
@@ -14,7 +14,8 @@ The example in this post is about using a kubernetes `CustomResourceDefinition` 
 someone who made need to run a lot of infrastructure set up (dare I even say Dev/Ops).
 
 The example is complete/functioning, but isn't the most robust **solution** for what it does. It is meant to be
-_enough_ to work, and illustrate the concept - but not exactly a model code base :angel:
+_enough_ to work, and illustrate the concept with a solution to a made-up problem - but not exactly a model code base 
+:angel:
 
 ## Hey, can you set me up a database?
 
