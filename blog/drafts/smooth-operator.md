@@ -6,6 +6,8 @@ author_image_url: https://avatars1.githubusercontent.com/u/149476?s=460&v=4
 tags: [Scala, ZIO, k8s]
 ---
 
+![How to deploy Kubernetes meme](/img/memernetes.jpg)
+
 ## Premise
 
 The example in this post is about using a kubernetes `CustomResourceDefinition` and `Operator` to simplify our lives as
