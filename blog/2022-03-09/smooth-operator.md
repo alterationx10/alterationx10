@@ -3,25 +3,27 @@ title: ZIO + Kubernetes
 author: Mark Rudolph
 author_url: https://github.com/alterationx10
 author_image_url: https://avatars1.githubusercontent.com/u/149476?s=460&v=4
-tags: [Scala, ZIO, k8s]
+tags: [Scala, ZIO, k8s, zio-k8s]
 ---
 
 ![How to deploy Kubernetes meme](/img/memernetes.png)
 
 ## Premise
 
-The example in this post is about using a kubernetes `CustomResourceDefinition` and `Operator` to simplify our lives as
-someone who made need to run a lot of infrastructure set up (dare I even say Dev/Ops).
+The example in this post is about using a kubernetes `CustomResourceDefinition` and `Operator` implemented with `ZIO` to
+simplify our lives as someone who made need to run a lot of infrastructure set up (dare I even say Dev/Ops).
 
 The example is complete/functioning, but isn't the most robust **solution** for what it does. It is meant to be
 _enough_ to work, and illustrate the concept with a solution to a made-up problem - but not exactly a model code base 
 :angel:
 
+Let's dig in!
+
 ### Hey, can you set me up a database?
 
-Perhaps you're the one with the password/access, or the only person nearby on the team that "knows SQL", but it's part
-of your daily life to set up databases for people. In between your coding work, you run _a lot_ of the following type of
-code on your postgres database running in your kubernetes cluster:
+Perhaps you're the one with the password/access to the database, or the only person nearby on the team that "knows SQL",
+but it's part of your daily life to set up databases for people. In between your coding work, you run _a lot_ of the
+following type of code for people who need to access their own database from a kubernetes cluster:
 
 ```postgresql
 CREATE DATABASE stuff;
@@ -124,7 +126,8 @@ val executeSql: Statement => String => ZIO[Any, Throwable, Unit] =
 ```
 
 Now with all of our pieces in place, we can implement our `createDatabaseWithRole` that will _safely_ grab
-a `Connection` + `Statement`, run our SQL, and then automatically close those resources when done:
+a `Connection` + `Statement`, run our SQL, and then automatically close those resources when done. It'll even hand back
+the random password generated:
 
 ```scala
 override def createDatabaseWithRole(db: String): Task[String] = {
@@ -141,7 +144,7 @@ override def createDatabaseWithRole(db: String): Task[String] = {
   }
 ```
 
-Now we can just make a simple ZIO program to call our new service, and call it a day!
+:heart_eyes: A thing ouf beauty! Now we can just make a simple ZIO program to call our new service, and call it a day!
 
 ```scala
 val simpleProgram: ZIO[Has[SQLService], Nothing, Unit] =
@@ -235,7 +238,8 @@ straightforward to implement.
 ```
 
 For our example program, we will always try and create the databases listed in the resources, and log/ignore the error
-if a database already exists. We will also take the auto-generated password, and create a secret for it as well!
+if a database already exists on `Added` and `Modified`. We will also take the auto-generated password, and create a
+secret for it as well! We won't tear anything down on `Deleted`.
 
 ```scala
 def processItem(item: Database): URIO[Clock, Unit] =
@@ -287,6 +291,8 @@ def upsertSecret(
   }
 ```
 
+That's about it! We now have the code we need to automate our daily drudgery!
+
 ## Deploying
 
 This example is targeted at deploying to the instance of Kubernetes provided by Docker, mainly so we can use our locally
@@ -295,7 +301,8 @@ published docker image.
 ### Auto generation of our CRD client
 
 We will need the `zio-k8s-crd` SBT plugin to auto generate the client needed to work with our CRD. Once added, we can
-update our `build.sbt` file with the following, which points to the new CRD.
+update our `build.sbt` file with the following, which points to the new CRD. With this in place, a compile step will
+generate the code for us.
 
 ```scala
 externalCustomResourceDefinitions := Seq(
@@ -319,8 +326,10 @@ smooth-operator 0.1.0-SNAPSHOT a4e2c2025cba   2 days ago      447MB
 
 ### Who doesn't love more YAML?
 
-We will create a standard `Deployment` of postgres, configured to have the super secure password of `password`. We will
-also create a `Service` to route traffic to it.
+This section will go over the kubernetes yaml needed to deploy everything we need for our app.
+
+We will create a standard `Deployment` of postgres, configured to have the _super secure password_ of `password` 
+:shushing_face:. We will also create a `Service` to route traffic to it.
 
 ```yaml
 apiVersion: apps/v1
@@ -360,9 +369,9 @@ spec:
 
 ```
 
-For deploying our `Operator`, we ultimately want to set up a `Deployment` for it, but we're going to need a few more
+For deploying our `Operator`, we ultimately are going to set up a `Deployment` for it, but we're going to need a few more
 bells and whistles first. Our app will need the right permissions to be able to watch our `CustomResourceDefinition`s,
-as well as accessing secrets - these actions are done by the `ServiceAccount` our pod runs under. We will create
+as well as accessing `Secrets` - these actions are done by the `ServiceAccount` our pod runs under. We will create
 a `ClusterRole` that has the required permissions, and use a `ClusterRoleBinding` to assign the `ClusterRole` to
 our `ServiceAccount`.
 
@@ -436,11 +445,14 @@ Note: When deploying an operator "for real", you want to take care that only one
 This is not covered here, but you should look
 into [Leader Election](https://coralogix.github.io/zio-k8s/docs/operator/operator_leaderelection)
 
-## The source
+## Running the Example
 
-You can view the source code on [GitHub](https://github.com/alterationx10/smooth-operator), tagged at ???
+You can view the source code on [GitHub](https://github.com/alterationx10/smooth-operator), tagged at `v0.0.3` at the
+time of this blog post.
 
-Assuming you have Docker/Kubernetes et up, you should be able to run the following commands to get an example up and running:
+Assuming you have Docker/Kubernetes et up, you should be able to run the following commands to get an example up and
+running:
+
 ```shell
 # Build/publish our App to the local Docker repo
 sbt docker:publishLocal
@@ -457,6 +469,33 @@ kubectl apply -f yaml/databases.yaml
 If you check the logs of the running pod, you should hopefully see the SQL successfully ran, and can also use `kubectl`
 to check for new `Secrets`!
 
-## Bonus Meme
+```shell
+➜ smooth-operator (main) ✗ kubectl logs db-operator-74f756c89c-x5f5b 
+SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+Reseted - will (re) add any existing
+Processing mark...
+CREATE DATABASE mark
+CREATE USER mark PASSWORD 'VCaHar'
+GRANT ALL ON DATABASE mark TO mark
+... mark created ...
+... Secret created for mark
+Processing joanie...
+CREATE DATABASE joanie
+CREATE USER joanie PASSWORD 'mdlQKB'
+GRANT ALL ON DATABASE joanie TO joanie
+... joanie created ...
+... Secret created for joanie
+Processing oliver...
+CREATE DATABASE oliver
+CREATE USER oliver PASSWORD 'vYODSt'
+GRANT ALL ON DATABASE oliver TO oliver
+... oliver created ...
+... Secret created for oliver
 
-![Hard work pays off](/img/reading_time.png)
+```
+
+_Nice_. 
+
+There you have it! After a day or two of set up, now you too can save tens of minutes every day!
