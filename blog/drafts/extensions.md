@@ -14,7 +14,7 @@ the [What's New in Scala 3](https://docs.scala-lang.org/scala3/new-in-scala3.htm
 
 Check the [`Scala 2 => 3`](/tags/scala-2-3) tag for others in the series! For the repo containing all the code,
 visit [GitHub](https://github.com/alterationx10/three4s). There are code samples for both Scala 2 and Scala 3 together,
-that are easy to run via `acala-cli`.
+that are easy to run via `scala-cli`.
 :::
 
 This post is centered around [retroactively extending classes](https://docs.scala-lang.org/scala3/reference/contextual/extension-methods.html).
@@ -23,8 +23,8 @@ This post is centered around [retroactively extending classes](https://docs.scal
 > implicit classes. In contrast, in Scala 3 extension methods are now directly built into the language, leading to better
 > error messages and improved type inference.
 
-Extensions are one of my favorite things to use in Scala. Personally, I like the ability to add functionality to "
-upstream" resources implicitly, but call that functionality explicitly. To me, it makes it a lot less likely to break
+Extensions are one of my favorite things to use in Scala. Personally, I like the ability to add functionality to 
+"upstream" resources implicitly, but call that functionality explicitly. To me, it makes it less likely to break
 things during a refactor when you don't have to un-ravel a mysterious series of implicit def methods / conversions that
 you might not realize are being called.
 

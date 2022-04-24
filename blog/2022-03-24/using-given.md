@@ -13,7 +13,7 @@ the [What's New in Scala 3](https://docs.scala-lang.org/scala3/new-in-scala3.htm
 
 Check the [`Scala 2 => 3`](/tags/scala-2-3) tag for others in the series! For the repo containing all the code,
 visit [GitHub](https://github.com/alterationx10/three4s). There are code samples for both Scala 2 and Scala 3 together,
-that are easy to run via `acala-cli`.
+that are easy to run via `scala-cli`.
 :::
 
 This post is centered around the new way of passing implicit arguments to methods via
