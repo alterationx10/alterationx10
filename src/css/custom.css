@@ -37,3 +37,28 @@ html[data-theme='dark'] {
 html[data-theme='dark'] .docusaurus-highlight-code-line {
   background-color: rgba(0, 0, 0, 0.3);
 }
+
+.work-history {
+  margin-top: 1em;
+  padding: 2em;
+  border: solid black 3px;
+  border-radius: 0.5em;
+}
+
+.work-history .logo {
+  margin-top: 1em;
+}
+
+.work-history .blurb {
+  margin-top: 1em;
+}
+
+html[data-theme='dark'] .work-history {
+  background: #2c3032;
+  border: solid white 3px;
+}
+
+.rambling {
+  margin: 1em;
+  padding: 1em;
+}
