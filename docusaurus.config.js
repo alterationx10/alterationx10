@@ -12,7 +12,7 @@ const config = {
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/favicon.png',
   organizationName: 'alterationx10',
   projectName: 'alterationx10',
 
@@ -42,10 +42,19 @@ const config = {
       image: 'img/type_safety_banner.png',
       navbar: {
         title: 'Alterationx10',
+        logo: {
+          alt: 'Alterationx10 Logo',
+          src: 'img/ax10-logo.png',
+          srcDark: 'img/ax10-logo.png',
+          href: '/',
+          target: '_self',
+          width: 32,
+          height: 32,
+        },
         items: [
-          {to: '/archive', label: 'Older Posts', position: 'left'},
-          {to: '/tags', label: 'Tags', position: 'left'},
-          {to: '/about', label: 'About', position: 'left'},
+          { to: '/archive', label: 'Older Posts', position: 'left' },
+          { to: '/tags', label: 'Tags', position: 'left' },
+          { to: '/about', label: 'About', position: 'left' },
           {
             href: 'https://github.com/alterationx10/alterationx10',
             label: 'GitHub',
