@@ -43,7 +43,8 @@ const config = {
       navbar: {
         title: 'Alterationx10',
         items: [
-          {to: '/', label: 'Blog', position: 'left'},
+          {to: '/archive', label: 'Older Posts', position: 'left'},
+          {to: '/tags', label: 'Tags', position: 'left'},
           {to: '/about', label: 'About', position: 'left'},
           {
             href: 'https://github.com/alterationx10/alterationx10',
