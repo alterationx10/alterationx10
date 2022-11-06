@@ -28,6 +28,7 @@ const config = {
           // Please change this to your repo.
           editUrl:
             'https://github.com/alterationx10/alterationx10/tree/main/',
+          remarkPlugins: [require('mdx-mermaid')],
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
