@@ -1,0 +1,128 @@
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage[papersize={8.5in,11in}, total={6in, 9in}]{geometry}
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{xcolor}
+\usepackage{sectsty}
+\usepackage{paracol}
+\usepackage{adjustbox}
+\usepackage[inline]{enumitem}
+
+\newcommand{\workTitle}[1]{\textcolor{cyan}{#1}}
+\newcommand{\daterange}[2]{\begin{small}\textcolor{gray}{#1-#2}\end{small}}
+\newcommand{\Experience}[4]{\subsection*{\daterange{#3}{#4}\linebreak\workTitle{#1 /} {#2}}}
+\newcommand{\hr}{\noindent\makebox[\linewidth]{\rule{\textwidth}{0.4pt}}}
+
+\newcommand{\SeperatedSection}[1]{\hr\section*{#1}}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{\baselineskip}
+\setlength{\parskip}{5pt}
+
+\begin{document}
+
+\begin{paracol}{2}
+    \scalebox{3}{Mark Rudolph}
+    \switchcolumn
+    \begin{table}
+        \begin{adjustbox}{width=\textwidth/2}
+            \begin{tabular}{r l}
+                EMail:    & mark@k8ty.app                             \\
+                Website:  & https://alterationx10.com/about           \\
+                GitHub:   & https://github.com/alterationx10          \\
+                LinkedIn: & https://www.linkedin.com/in/alterationx10
+            \end{tabular}
+        \end{adjustbox}
+    \end{table}
+\end{paracol}
+
+\SeperatedSection{Summary}
+
+Self-driven full stack Scala developer who has focused on designing, implementing, and maintaining big features at companies of all sizes.
+With 10+ years of experience using Linux systems, application development, and far too much education - I'm a firm believer that if you can dodge a wrench, you can dodge a ball.
+
+\SeperatedSection{Experience}
+
+\Experience{Senior Engineer II}{Carvana}{2020}{Present}
+
+Carvana is an online car retailer.
+There, in the Special Projects department, I design and build out backend systems in Scala.
+One of the most exciting things I've worked on, is help lead our shift to using the ZIO framework, as well as our push to Scala 3.
+
+\Experience{Senior Software Engineer}{Kangarootime}{2019}{2020}
+
+Kangarootime creates leading software for childcare centers and preschools.
+In my time there, I helped lift, develop, and deploy a new product platform to Kubernetes.
+
+
+\Experience{Senior Scala Developer}{Blue Orange Digital}{2018}{2019}
+
+Blue Orange Digital is a an integrated full-stack data science agency.
+In my time there, I helped shore up the infrastructure of a multi-billion dollar hedge fund based in Stamford, Connecticut.
+I worked to troubleshoot, improve, and document their containerized Scala/Akka micro service platform backed by Kafka/MongoDB/MS SQLServer.
+
+\pagebreak
+\Experience{Full Stack Developer}{Vaspian}{2014}{2018}
+
+Vaspian is a cloud-based VoIP provider located in Buffalo, NY.
+In my time here, I focused on building and automating platforms that provide advanced analytics and interfaces to our customers, as well as enhanced operational tools for internal service provisioning.
+
+Some of the larger projects I lead while working here include:
+
+\subsubsection*{In-House Kubernetes}
+
+Designed, built, and maintained our own bare-metal Kubernetes cluster for application deployment.
+Building this all-in-one system has allowed us to more reliably deliver our current applications/services to our customers, promptly roll out new features, as well as offer new services that were intractable to manage before.
+
+
+\subsubsection*{Customer Facing Applications}
+
+Built and maintained our main customer facing portal, which provided custom reporting and real-time event integration with our core phone system.
+Using Scala and Akka, along with the Play Framework, we have been able to roll out stable, scalable services that are agile enough to grow with our customers.
+
+\subsubsection*{Internal Tooling}
+
+Built and maintained middleware for maintenance/administration of systems built by our internal Network Engineers which allowed our customer service/support staff to perform more technical tasks such as:
+
+\begin{itemize}
+    \item Dynamically provision custom services for our customers
+    \item Manage and troubleshoot customer configurations
+    \item Monitor customer service status in real time
+\end{itemize}
+
+\Experience{Scientist/Software Developer}{Sensorcon}{2011}{2014}
+
+Sensorcon is a developer and manufacturer of environmental sensors located in Williamsville, NY.
+In my time there, I was part of a small start-up team focusing on bringing products to market from the ground up.
+My primary focus was working with firmware engineers to write libraries and customer facing applications (iOS, Android, PC) that could talk to our sensor devices via Bluetooth.
+
+\pagebreak
+Relevant software projects include:
+
+\begin{itemize}
+    \item iOS/Android/Java API library development to integrate with our sensors
+    \item iOS/Android App development
+    \item Internal inventory system to improve our manufacturing capacity
+    \item Automated QA testing protocols and procedures for sensor development, to enable technicians
+          to batch process sensors in a reliable and repeatable manner
+    \item Automated QC testing procedures for production, to promptly identify issues before they
+          reached consumers
+\end{itemize}
+
+\SeperatedSection{Education}
+
+\Experience{PhD}{University at Buffalo}{2006}{2012}
+
+I received my PhD at the State University of New York at Buffalo in Computational Chemistry under Dr. Jochen Autschbach, focusing on optical activity of transition metal complexes.
+
+\SeperatedSection{Skills}
+
+\begin{enumerate*}[label=]
+    \item Scala/3
+    \item ZIO
+  \end{enumerate*}
+
+
+\end{document}
