@@ -9,11 +9,14 @@
 \usepackage{paracol}
 \usepackage{adjustbox}
 \usepackage[inline]{enumitem}
+\usepackage{tcolorbox}
 
 \newcommand{\workTitle}[1]{\textcolor{cyan}{#1}}
 \newcommand{\daterange}[2]{\begin{small}\textcolor{gray}{#1-#2}\end{small}}
 \newcommand{\Experience}[4]{\subsection*{\daterange{#3}{#4}\linebreak\workTitle{#1 /} {#2}}}
 \newcommand{\hr}{\noindent\makebox[\linewidth]{\rule{\textwidth}{0.4pt}}}
+
+\newcommand{\skill}[1]{\tcbox[on line]{\strut #1}}
 
 \newcommand{\SeperatedSection}[1]{\hr\section*{#1}}
 
@@ -41,7 +44,7 @@
 \SeperatedSection{Summary}
 
 Self-driven full stack Scala developer who has focused on designing, implementing, and maintaining big features at companies of all sizes.
-With 10+ years of experience using Linux systems, application development, and far too much education - I'm a firm believer that if you can dodge a wrench, you can dodge a ball.
+With 10+ years of experience with Linux systems, application development/deployment, and far too much education - I'm a firm believer that if you can dodge a wrench, you can dodge a ball.
 
 \SeperatedSection{Experience}
 
@@ -117,12 +120,22 @@ Relevant software projects include:
 
 I received my PhD at the State University of New York at Buffalo in Computational Chemistry under Dr. Jochen Autschbach, focusing on optical activity of transition metal complexes.
 
+\SeperatedSection{Miscellaneous}
+
+I've made several ZIO based contributions to the popular Rock The JVM blog.
+Albeit small, I've also made several OSS contributions across the ZIO ecosystem including Caliban, zio-cli, and zio-crypto.
+
+
 \SeperatedSection{Skills}
 
-\begin{enumerate*}[label=]
-    \item Scala/3
-    \item ZIO
-  \end{enumerate*}
+\skill{Scala/3}
+\skill{ZIO}
+\skill{Akka}
+\skill{Kuberenetes / Docker}
+
+\skill{PostgreSQL / MongoDB / Redis}
+\skill{Pulsar / Kafka / RabbitMQ}
+
 
 
 \end{document}
