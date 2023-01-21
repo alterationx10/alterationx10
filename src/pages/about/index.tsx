@@ -32,7 +32,7 @@ export default () => {
         <WorkHistory
           logo={"/img/about/carvana.png"}
           title={"Carvana"}
-          subTitle={"Senior Eng. II | Special Projects :: 2020-Present"}
+          subTitle={"Principal Engineer | Special Projects :: 2020-Present"}
           logoAlt={"Carvana Logo"}
         >
           Carvana is an online car retailer. There, in the Special Projects
