@@ -7,20 +7,6 @@ export default () => {
   return (
     <Layout>
       <div className={"rambling"}>
-        <p>Hello there! 👋</p>
-
-        <p>I'm Mark, and I'm a Scala nerd.</p>
-
-        <p>
-          This site is my tech blog, largely about and related to all things
-          Scala. I use ZIO at work, so you'll likely find a healthy dose of that
-          here as well.
-        </p>
-
-        <p>
-          Given the opportunity, I will likely talk to you about kubernetes too
-          👼
-        </p>
         <h3>Work History</h3>
         <p>
           If you're interested in a sort of running Curriculum Vitae, then read

@@ -22,13 +22,7 @@ const config = {
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: false,
-        blog: {
-          routeBasePath: '/',
-          showReadingTime: true,
-          // Please change this to your repo.
-          editUrl:
-            'https://github.com/alterationx10/alterationx10/tree/main/',
-        },
+        blog: false,
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
@@ -52,8 +46,6 @@ const config = {
           height: 32,
         },
         items: [
-          { to: '/archive', label: 'Older Posts', position: 'left' },
-          { to: '/tags', label: 'Tags', position: 'left' },
           { to: '/about', label: 'About', position: 'left' },
           {
             href: 'https://github.com/alterationx10/alterationx10',
