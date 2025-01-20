@@ -7,10 +7,10 @@ built/deployed with!
 
 Why am I doing this? For fun! I've been re-inventing some wheels, and having a blast doing it. I wouldn't expect people
 to use any of it for serious work any time soon, but you're certainly welcome to try it out! The little ecosystem lives
-in the [wishingtreedev](https://github.com/wishingtreedev) group on GitHub.
+in the [wishingtreedev](https://github.com/wishingtreedev) org on GitHub.
 
 This site will probably focus on my work with these projects, but I've ported over some old articles (again) so some
 older links should hopefully still work.
 
-Check out [about](/about) for some of my work history, or the external links in the footer to get in contact with me
-elsewhere!
+Head over to the [blog](/latest) section to see my latest ramblings, check out [about](/about) for some of my work
+history, or the external links in the footer to get in contact with me elsewhere!
