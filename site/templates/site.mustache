@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark"/>
+    <link rel="icon" href="/img/favicon.png"/>
+    <link rel="mask-icon" href="/img/ax10-logo.png" color="white">
+    <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.violet.min.css"
+    >
+
+    <title>
+        {{content.fm.title}}{{^content.fm.title}}Alterationx10{{/content.fm.title}}
+    </title>
+    <meta name="keywords" content="{{content.fm.tags}}">
+    <meta name="author" content="{{content.fm.author}}">
+    <meta name="description" content="{{content.fm.description}}">
+</head>
+<body>
+<header class="container">
+    <nav>
+        <ul>
+            <li>
+                <a href="index.html" class="contrast">
+                    <img src="/img/ax10-logo.png" height="64" width="64" style="vertical-align:middle">
+                    <strong>Alterationx10</strong>
+                </a>
+            </li>
+        </ul>
+        <ul>
+            <li><a href="/latest" class="contrast">Blog</a></li>
+            <li><a href="/tags" class="contrast">Tags</a></li>
+            <li><a href="/about" class="contrast">About</a></li>
+        </ul>
+    </nav>
+</header>
+<main class="container">
+    <div id="site-content">
+        {{>content}}
+    </div>
+</main>
+<footer class="container">
+    <div class="container">
+        <h3>Elsewhere</h3>
+        <ul>
+            <li><a href="https://bsky.app/profile/alterationx10.bsky.social" class="contrast">Bluesky</a></li>
+            <li><a href="https://github.com/alterationx10" class="contrast">GitHub</a></li>
+            <li><a href="https://www.linkedin.com/in/alterationx10/" class="contrast">LinkedIn</a></li>
+        </ul>
+
+    </div>
+    <div class="container">
+        <p>&copy; {{year}} Mark Rudolph All rights reserved.</p>
+    </div>
+</footer>
+</body>
+</html>
