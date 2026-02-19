@@ -1,1 +1,24 @@
-{"siteTitle": "My Blarg! Site"}
+{
+  "siteTitle": "Alterationx10",
+  "author": "Mark Rudolph",
+  "navigation": [
+    {
+      "label": "Blog",
+      "href": "/latest"
+    },
+    {
+      "label": "Tags",
+      "href": "/tags"
+    },
+    {
+      "label": "About",
+      "href": "/about"
+    }
+  ],
+  "dynamic": {
+    "socialLinks": {
+      "github": "https://github.com/alterationx10"
+    },
+    "siteDescription": "My personal site"
+  }
+}

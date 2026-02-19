@@ -20,7 +20,7 @@ you can get the most recent copy of hand-crafted LaTeX resume
 ## Carvana
 
 **Principal Software Engineer | Special Projects**
-*2020-Present*
+*2020-2025*
 
 <img src="/img/about/carvana.png" width="200"/>
 
