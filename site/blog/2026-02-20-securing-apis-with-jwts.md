@@ -2,8 +2,8 @@
 title: Securing APIs with JWTs
 description:
 author: Mark Rudolph
-published: 2026-02-20T14:55:00Z
-lastUpdated: 2026-02-20T14:55:00Z
+published: 2026-02-24T00:00:00Z
+lastUpdated: 2026-02-24T00:00:00Z
 tags:
   - API
   - JWT
