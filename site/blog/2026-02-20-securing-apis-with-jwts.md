@@ -94,6 +94,7 @@ I've wrote a small reusable library that helps with this named [hookshot](#hooks
 look something like this, if we tried to automatically log a user in to a protected route `/me`
 
 ```mermaid
+%%{init: {'theme': 'dark'}}%%
 sequenceDiagram
     participant User
     participant App as Cask App
