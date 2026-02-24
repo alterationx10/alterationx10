@@ -15,7 +15,7 @@ tags:
 
 ## Altx10
 
-As mentioned in my [previous post](./2026-02-19-open-apps-with-pocket-id), I'm planning to roll out some demo web
+As mentioned in my [previous post](/2026/02/19/open-apps-with-pocket-id), I'm planning to roll out some demo web
 applications leveraging a self-hosted "third party" Open ID Connect identity server (Pocket ID). I've set up a short url
 to host these at: `altx10.dev`, with the idea being that each one will be deployed to `{app}.altx10.dev`. These
 applications will be independent of each other, but with a centralized login. In order to secure parts of the apps, we
@@ -86,11 +86,12 @@ don't want them to be able to access everything just because they have a GitHub 
 authorization, and we are *identifying* users with Pocket ID as an OpenID Connect server. Our apps will say "I've
 identified you via Pocket ID, and I will give you a JWT that authorizes you to use some restricted APIs."
 
-In the `altx10.dev` domains, a code-flow login is made to the Pocket ID instance. If everything processes correctly,
-then the final request will set a JWT cookie identifying who you are, and what permissions you have been allowed.
+In the `{app}.altx10.dev` domains, a code-flow login is made to the Pocket ID instance. If everything processes
+correctly, then the final request will set a JWT cookie identifying who you are, and what permissions you have been
+allowed.
 
-With our [hookshot](https://github.com/alterationx10/hookshot) library, the flow might look something like this, if we
-tried to automatically log a user in to a protected route `/me`
+I've wrote a small reusable library that helps with this named [hookshot](#hookshot). With this library, the flow might
+look something like this, if we tried to automatically log a user in to a protected route `/me`
 
 ```mermaid
 sequenceDiagram
@@ -118,6 +119,19 @@ sequenceDiagram
     App ->> App: @autoAuthorize — valid session
     App -->> User: 200 OK — Profile page
 ```
+
+## Hookshot
+
+[Hookshot](https://github.com/alterationx10/hookshot) is a small Scala library built on top
+of [Cask](https://com-lihaoyi.github.io/cask/) that handles the OIDC authentication flow. It provides drop-in routes for
+login, logout, and the OIDC callback, along with route decorators (`@autoAuthorize`, `@authorized`, `@maybeAuthorized`)
+for protecting endpoints, and JWT-based session management.
+
+It's designed to be reusable across the apps in this series — each app can pull in hookshot and get authentication wired
+up without reimplementing the redirect dance, state signing, or token exchange from scratch. That said, hookshot is
+intentionally somewhat bespoke: it's built around Pocket ID, Cask, and the patterns specific to this setup. It isn't
+trying to be a general-purpose OIDC library for the world — think of it more as a working example and a starting point
+you could adapt for your own stack.
 
 ## JWTs vs Sessions
 
